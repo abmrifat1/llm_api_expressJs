@@ -32,8 +32,8 @@ npm -v
 ### 2. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/llm-api-expressjs.git
-cd llm-api-expressjs
+git clone https://github.com/abmrifat1/llm_api_expressJs.git
+cd llm_api_expressJs
 ```
 
 ### 3. Install dependencies
