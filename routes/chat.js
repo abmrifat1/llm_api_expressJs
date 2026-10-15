@@ -1,6 +1,6 @@
 import express from "express";
-import { chat, chatStream } from "../services/llm";
-import { chatLimiter } from "../middleware/rateLimit";
+import { chat, chatStream } from "../services/llm.js";
+import { chatLimiter } from "../middleware/rateLimit.js";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post("/chat", chatLimiter, async (req, res) => {
   try {
     const { messages } = req.body;
 
-    if (!Array.isArray(!messages) || messages.length === 0) {
+    if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({
         error: "`messages` must be a non-empty array.",
       })
@@ -17,7 +17,7 @@ router.post("/chat", chatLimiter, async (req, res) => {
 
     const result = await chat({ messages });
     res.json(result);
-  } catch (error) {
+  } catch (err) {
     console.error("Chat error:", err);
 
     if (err.status === 401) {
@@ -35,7 +35,7 @@ router.post("/chat/stream", chatLimiter, async (req, res) => {
   try {
     const { messages } = req.body;
 
-    if (!Array.isArray(!messages) || messages.length === 0) {
+    if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({
         error: "`messages` must be a non-empty array.",
       })
@@ -59,7 +59,7 @@ router.post("/chat/stream", chatLimiter, async (req, res) => {
     res.write("data: [DONE]\n\n");
     res.end();
 
-  } catch (error) {
+  } catch (err) {
     console.error("Stream error:", err);
     res.write(`data: ${JSON.stringify({ error: "Stream failed." })}\n\n`);
     res.end();

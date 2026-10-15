@@ -3,7 +3,7 @@ import OpenAI from "openai";
 // Provider Configurations
 const PROVIDERS = {
   groq: {
-    baseURL: 'https://api.groq.com/openap/v1',
+    baseURL: 'https://api.groq.com/openai/v1',
     apiKey: process.env.GROQ_API_KEY,
     defaultModel: "llama-3.3-70b-versatile",
   },
@@ -20,10 +20,10 @@ const PROVIDERS = {
 }
 
 // Active Provider Selection
-const providerName = (process.env.PROVIDERS || 'groq')?.toLowerCase();
-const config = PROVIDERS(providerName);
+const providerName = (process.env.PROVIDER)?.toLowerCase();
+const config = PROVIDERS[providerName];
 
-console.log('providerName ===============>', providerName);
+console.log('providerName =>', providerName);
 
 if (!config) {
   throw new Error(
