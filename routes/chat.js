@@ -1,7 +1,7 @@
 import express from "express";
 import { chat, chatStream } from "../services/llm.js";
 import { chatLimiter } from "../middleware/rateLimit.js";
-
+import { extractData, reviewCode } from "../services/promptService.js";
 const router = express.Router();
 
 // POST /api/chat — Non-Streaming JSON Response
@@ -63,6 +63,43 @@ router.post("/chat/stream", chatLimiter, async (req, res) => {
     console.error("Stream error:", err);
     res.write(`data: ${JSON.stringify({ error: "Stream failed." })}\n\n`);
     res.end();
+  }
+});
+
+// POST /api/chat/extract - Structured JSON Extraction
+router.post("/chat/extract", chatLimiter, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: "`text` is required." });
+
+    const result = await extractData(text);
+
+    let cleanJson = result.reply.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    res.json({
+      extractedData: JSON.parse(cleanJson),
+      usage: result.usage
+    });
+  } catch (err) {
+    console.error("Extraction error:", err);
+    res.status(500).json({ error: "Failed to extract data." });
+  }
+});
+
+// POST /api/chat/review-code - Code Review Assistant
+router.post("/chat/review-code", chatLimiter, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: "`code` is required." });
+
+    const result = await reviewCode(code);
+    res.json({
+      review: result.reply,
+      usage: result.usage
+    });
+  } catch (err) {
+    console.error("Code Review error:", err);
+    res.status(500).json({ error: "Failed to review code." });
   }
 });
 

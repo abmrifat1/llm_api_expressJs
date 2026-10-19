@@ -208,7 +208,51 @@ data: [DONE]
 
 Each line is a JSON object with a `delta` field containing a chunk of text. The stream ends with `data: [DONE]`.
 
+
+### 4. `POST /api/chat/extract` — JSON Data Extraction
+
+Uses strict system prompts to extract structured JSON from raw text.
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/api/chat/extract \
+  -H "Content-Type: application/json" \
+  -d '{"text": "My name is Khorshed, I am 30 years old and I know Rect, React native, Angular, Node, NextJs, NestJs and ExpressJs."}'
+```
+
+**Response:**
+```json
+{
+  "extractedData": {
+    "name": "Khorshed",
+    "age": 30,
+    "skills": ["Rect", "React native", "Angular", "Node", "NextJs", "NestJs", "ExpressJs"]
+  },
+  "usage": { "promptTokens": 85, "completionTokens": 20, "totalTokens": 105 }
+}
+```
+
+### 5. `POST /api/chat/review-code` — AI Code Reviewer
+
+Uses Role Prompting and Chain-of-Thought to review code like a Senior Engineer.
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/api/chat/review-code \
+  -H "Content-Type: application/json" \
+  -d '{"code": "function add(a, b) { return a + b; }"}'
+```
+
+**Response:**
+```json
+{
+  "review": "### Issues Found\n- No input validation.\n### Improvements\n- Add type checking.\n### Refactored Code\n```javascript\nfunction add(a, b) {\n  if (typeof a !== \"number\" || typeof b !== \"number\") throw new Error(\"Invalid input\");\n  return a + b;\n}\n```",
+  "usage": { "promptTokens": 120, "completionTokens": 65, "totalTokens": 185 }
+}
+```
+
 ---
+
 
 ## 🔀 Switching Providers
 
