@@ -208,8 +208,9 @@ data: [DONE]
 
 Each line is a JSON object with a `delta` field containing a chunk of text. The stream ends with `data: [DONE]`.
 
+---
 
-### 4. `POST /api/chat/extract` — JSON Data Extraction
+### 3. `POST /api/chat/extract` — JSON Data Extraction
 
 Uses strict system prompts to extract structured JSON from raw text.
 
@@ -231,8 +232,9 @@ curl -X POST http://localhost:3000/api/chat/extract \
   "usage": { "promptTokens": 85, "completionTokens": 20, "totalTokens": 105 }
 }
 ```
+---
 
-### 5. `POST /api/chat/review-code` — AI Code Reviewer
+### 4. `POST /api/chat/review-code` — AI Code Reviewer
 
 Uses Role Prompting and Chain-of-Thought to review code like a Senior Engineer.
 
