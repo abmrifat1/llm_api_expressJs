@@ -1,6 +1,6 @@
-# LLM API (Express.js)
+# LLM API (Express.js) - Multi-Provider AI & RAG System
 
-A production-ready REST API for calling Large Language Models (LLMs), built with **Node.js + Express**. It supports **multi-provider switching** (Groq, OpenAI, Gemini) with a single environment variable, plus both standard JSON and streaming (SSE) responses.
+A production-ready REST API for calling Large Language Models (LLMs), built with **Node.js + Express**. It supports **multi-provider switching** (Groq, OpenAI, Gemini) with a single environment variable, plus standard JSON, streaming (SSE) responses, advanced Prompt Engineering, and a local **RAG (Retrieval-Augmented Generation)** pipeline.
 
 ---
 
@@ -8,6 +8,8 @@ A production-ready REST API for calling Large Language Models (LLMs), built with
 
 - 🔀 **Provider-agnostic** — switch between Groq, OpenAI, and Gemini via `.env`
 - 🌊 **Streaming responses** using Server-Sent Events (SSE)
+- 🧠 **Prompt Engineering** — Structured JSON extraction & AI Code Review endpoints
+- 📚 **RAG Pipeline** — Ingest documents and query them using local embeddings (100% Free, no embedding API costs)
 - 🔁 **Automatic retry** with exponential backoff on `429` / `5xx` errors
 - 🛡️ **Rate limiting** per IP (20 requests / minute by default)
 - ⚙️ **Configurable** via environment variables
@@ -16,11 +18,34 @@ A production-ready REST API for calling Large Language Models (LLMs), built with
 
 ---
 
+## 📁 Project Structure
+
+```
+llm-api-expressjs/
+├── .env.example
+├── .gitignore
+├── package.json
+├── server.js
+├── routes/
+│   ├── chat.js
+│   └── rag.js
+├── services/
+│   ├── llm.js
+│   ├── promptService.js
+│   └── ragService.js
+└── middleware/
+    └── rateLimit.js
+```
+
+---
+
 ## 🚀 Installation
 
 ### 1. Install Node.js
+- **Node.js v20.10+** (Required for `@huggingface/transformers`)
+- **Groq API Key** (Free at [console.groq.com](https://console.groq.com))
 
-Download and install Node.js (v18 or later) from [nodejs.org](https://nodejs.org).
+Download and install Node.js (v20 or later) from [nodejs.org](https://nodejs.org).
 
 Verify the installation:
 
@@ -39,7 +64,7 @@ cd llm_api_expressJs
 ### 3. Install dependencies
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 4. Configure environment variables
@@ -252,6 +277,23 @@ curl -X POST http://localhost:3000/api/chat/review-code \
   "usage": { "promptTokens": 120, "completionTokens": 65, "totalTokens": 185 }
 }
 ```
+---
+
+### 5. `POST /api/rag/upload` — Upload Document for RAG
+Ingests text into the local vector store.
+```bash
+curl -X POST http://localhost:3000/api/rag/upload \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Your long document text here..."}'
+```
+
+### 6. `POST /api/rag/query` — Query RAG Document
+Asks a question based on the uploaded document.
+```bash
+curl -X POST http://localhost:3000/api/rag/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is the document about?"}'
+```
 
 ---
 
@@ -294,12 +336,12 @@ MODEL=gemini-2.0-flash
 
 ## 🛠️ Tech Stack
 
-- **Node.js** (v18+) — runtime
-- **Express** — HTTP server
-- **openai** (SDK) — OpenAI-compatible client (works with Groq & Gemini too)
-- **dotenv** — environment configuration
-- **express-rate-limit** — abuse prevention
-- **cors** — cross-origin support
+- **Node.js & Express** — Core API
+- **openai** — SDK for Groq/OpenAI/Gemini
+- **LangChain** (`@langchain/*`) — RAG orchestration
+- **@huggingface/transformers** — Local Embeddings (No API cost)
+- **MemoryVectorStore** — In-memory Vector Database
+- **dotenv, cors, express-rate-limit**
 
 ---
 
