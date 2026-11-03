@@ -47,26 +47,38 @@ const client = new OpenAI({
 const MODEL = process.env.MODEL || config?.defaultModel;
 const MAX_TOKENS = parseInt(process.env.MAX_TOKENS || "1024", 10);
 
+// Error Normalizer
+function normalizeError(err) {
+  const status = err?.status || err?.response?.status || 500;
+  const message = err?.message || "An unknown error occurred.";
+
+  if (status === 429) {
+    return { type: "RATE_LIMIT", status, message, retryable: true };
+  }
+  if (status === 401) {
+    return { type: "AUTH_ERROR", status, message, retryable: false };
+  }
+  if (status >= 500) {
+    return { type: "PROVIDER_ERROR", status, message, retryable: true };
+  }
+  return { type: "UNKNOWN_ERROR", status, message, retryable: false };
+}
+
 // Retry Wrapper for Transient Errors
 async function withRetry(fn, retries = 3, baseDelays = 1000) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       return await fn();
     } catch (err) {
-      const status = err?.status;
-      const isRetryAble =
-        status === 408 ||
-        status === 409 ||
-        status === 429 ||
-        (status >= 500 && status < 600) ||
-        err?.code === "ECONNRESET";
 
-      if (!isRetryAble || attempt === retries) throw err;
+      const normalizeErr = normalizeError(err);
 
-      const delay = baseDelayMs * attempt + Math.random() * 500;
+      if (!normalizeErr.retryable || attempt === retries) throw err;
+
+      const delay = (baseDelayMs * Math.pow(2, attempt - 1)) + Math.random() * 500;
 
       console.warn(
-        `⚠️ Attempt ${attempt} failed (${status || err.code}). Retrying in ${Math.round(delay)}ms...`
+        `⚠️ Attempt ${attempt} failed [${normalizeErr.retryable}]. Retrying in ${Math.round(delay)}ms...`
       );
 
       await new Promise((r) => setTimeout(r, delay));

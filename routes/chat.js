@@ -21,12 +21,12 @@ router.post("/chat", chatLimiter, async (req, res) => {
     console.error("Chat error:", err);
 
     if (err.status === 401) {
-      return res.status(401).json({ error: "Invalid API key." });
+      return res.status(401).json({ error: "Invalid API key. Please check your .env configuration." });
     }
     if (err.status === 429) {
-      return res.status(429).json({ error: "Upstream rate limit hit." });
+      return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
     }
-    res.status(500).json({ error: "Something went wrong. Try again." });
+    res.status(500).json({ error: "Something went wrong on our end." });
   }
 });
 
