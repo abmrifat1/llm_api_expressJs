@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import chatRoutes from "./routes/chat.js";
 import ragRoutes from "./routes/rag.js";
+import agentRoutes from "./routes/agent.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/health", (_, res) => {
 // Chat routes
 app.use("/api", chatRoutes);
 app.use("/api/rag", ragRoutes);
+app.use("/api/agent", agentRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

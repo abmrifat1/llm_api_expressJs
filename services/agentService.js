@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { evaluate } from 'mathjs';
+import { chat } from "./llm.js";
 
 // Provider Configurations
 const PROVIDERS = {
@@ -23,8 +24,6 @@ const PROVIDERS = {
 // Active Provider Selection
 const providerName = (process.env.PROVIDER)?.toLowerCase();
 const config = PROVIDERS[providerName];
-
-console.log('providerName =>', providerName);
 
 if (!config) {
   throw new Error(
@@ -78,10 +77,32 @@ const tools = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "generate_creative_text",
+      description: "Generate a creative piece like a poem, short story, or joke based on a specific topic.",
+      parameters: {
+        type: "object",
+        properties: {
+          topic: {
+            type: "string",
+            description: "The topic or subject to write about.",
+          },
+          format: {
+            type: "string",
+            enum: ["poem", "story", "joke"],
+            description: "The format of the creative text.",
+          }
+        },
+        required: ["topic"],
+      },
+    },
+  }
 ];
 
 // Execute function
-function executeTools(toolName, args) {
+async function executeTools(toolName, args) {
   if (toolName === 'calculate') {
     try {
       const result = evaluate(args.expression);
@@ -97,4 +118,81 @@ function executeTools(toolName, args) {
       timeZone: "Asia/Dhaka"
     }
   }
+
+  if (toolName === "generate_creative_text") {
+    try {
+      const prompt = `Write a beautiful ${args.format || 'poem'} about: ${args.topic}`;
+
+      const result = await chat({
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8
+      });
+
+      return { creative_text: result.reply };
+    } catch (error) {
+      return { error: "Failed to generate creative text." };
+    }
+  }
+
+  return {
+    error: "Tool not found."
+  };
+}
+
+// ReAct Pattern
+export async function runAgent(userMessage) {
+  const messages = [
+    {
+      role: "system",
+      content: "You are a helpful AI assistant. Use the provided tools if necessary to answer the user's query accurately."
+    },
+    {
+      role: "user",
+      content: userMessage
+    },
+  ];
+
+  const maxIterations = 3;
+  let iteration = 0;
+
+  while (iteration < maxIterations) {
+    iteration++;
+
+    const response = await client.chat.completions.create({
+      model: MODEL,
+      messages: messages,
+      tools: tools,
+      tool_choice: 'auto',
+      temperature: 0.1,
+    });
+
+    const responseMessage = response.choices[0].message;
+    messages.push(responseMessage);
+
+    // if tools is not call
+    if (!responseMessage.tool_calls) {
+      return {
+        answer: responseMessage.content,
+        iteration: iteration,
+        usage: response.usage
+      }
+    }
+
+    for (const toolCall of responseMessage.tool_calls) {
+      const functionName = toolCall.function.name;
+      const functionArgs = JSON.parse(toolCall.function.arguments);
+
+      console.log(`Agent is using tool: ${functionName} (${JSON.stringify(functionArgs)})`);
+
+      const toolResult = await executeTools(functionName, functionArgs);
+
+      messages.push({
+        role: "tool",
+        tool_call_id: toolCall.id,
+        content: JSON.stringify(toolResult),
+      });
+    }
+  }
+
+  return { error: "Agent exceeded maximum iterations without a final answer." };
 }

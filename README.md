@@ -1,6 +1,6 @@
-# LLM API (Express.js) - Multi-Provider AI & RAG System
+# LLM API Gateway (Express.js) - Multi-Provider, RAG & AI Agents
 
-A production-ready REST API for calling Large Language Models (LLMs), built with **Node.js + Express**. It supports **multi-provider switching** (Groq, OpenAI, Gemini) with a single environment variable, plus standard JSON, streaming (SSE) responses, advanced Prompt Engineering, and a local **RAG (Retrieval-Augmented Generation)** pipeline.
+A production-ready, provider-agnostic REST API built with **Node.js + Express** for integrating Large Language Models (LLMs). This project goes beyond basic chat by implementing advanced **Prompt Engineering**, **RAG (Retrieval-Augmented Generation)**, and **Autonomous AI Agents (Function Calling)**.
 
 ---
 
@@ -10,6 +10,7 @@ A production-ready REST API for calling Large Language Models (LLMs), built with
 - 🌊 **Streaming responses** using Server-Sent Events (SSE)
 - 🧠 **Prompt Engineering** — Structured JSON extraction & AI Code Review endpoints
 - 📚 **RAG Pipeline** — Ingest documents and query them using local embeddings (100% Free, no embedding API costs)
+- 🤖 **Autonomous AI Agent** — Implements the ReAct (Reasoning + Acting) loop with Function Calling. The agent dynamically selects tools (Math Calculator, Time, Creative Writing) based on user intent.
 - 🔁 **Automatic retry** with exponential backoff on `429` / `5xx` errors
 - 🛡️ **Rate limiting** per IP (20 requests / minute by default)
 - ⚙️ **Configurable** via environment variables
@@ -23,16 +24,17 @@ A production-ready REST API for calling Large Language Models (LLMs), built with
 ```
 llm-api-expressjs/
 ├── .env.example
-├── .gitignore
 ├── package.json
 ├── server.js
 ├── routes/
-│   ├── chat.js
-│   └── rag.js
+│   ├── chat.js       # Basic Chat & Prompt Engineering (Extract, Code Review)
+│   ├── rag.js        # Document Upload & RAG Query
+│   └── agent.js      # Autonomous AI Agent (ReAct Loop)
 ├── services/
-│   ├── llm.js
-│   ├── promptService.js
-│   └── ragService.js
+│   ├── llm.js        # Multi-provider LLM client & Retry logic
+│   ├── promptService.js # System prompts for JSON extraction & Code Review
+│   ├── ragService.js    # LangChain & Vector Store logic
+│   └── agentService.js  # Tool definitions & Execution logic
 └── middleware/
     └── rateLimit.js
 ```
@@ -295,6 +297,16 @@ curl -X POST http://localhost:3000/api/rag/query \
   -d '{"question": "What is the document about?"}'
 ```
 
+### 7. `POST /api/agent/chat` — Autonomous AI Agent (Function Calling)
+
+Executes an autonomous ReAct (Reasoning + Acting) loop. The agent decides when to use external tools (Calculator, Current Time) to fulfill the user's request.
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/api/agent/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is 15 * 4 + 10? And what is the current time?"}'
+  ```
 ---
 
 
@@ -338,9 +350,10 @@ MODEL=gemini-2.0-flash
 
 - **Node.js & Express** — Core API
 - **openai** — SDK for Groq/OpenAI/Gemini
-- **LangChain** (`@langchain/*`) — RAG orchestration
+- **LangChain** (`@langchain/*`) — RAG and AI Agent orchestration
 - **@huggingface/transformers** — Local Embeddings (No API cost)
 - **MemoryVectorStore** — In-memory Vector Database
+- **mathjs** — Secure mathematical evaluation for Agent Tools
 - **dotenv, cors, express-rate-limit**
 
 ---
