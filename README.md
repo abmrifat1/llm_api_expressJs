@@ -345,6 +345,14 @@ MODEL=gemini-2.0-flash
 
 ---
 
+## 🚀 Future Improvements (Production Scaling)
+
+- **Persistent Vector Storage:** Currently uses `MemoryVectorStore` for zero-config setup. In production, this can be swapped with a production-grade vector database like `PGVectorStore` (PostgreSQL + pgvector) or Pinecone to ensure data persistence and HNSW indexing.
+- **Document Parsers:** Add support for uploading PDF, DOCX, and CSV files instead of raw text.
+- **User Authentication:** Add JWT-based authentication and per-user document isolation.
+
+---
+
 ## 📄 License
 
 MIT — feel free to use, modify, and share.
