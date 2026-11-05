@@ -2,6 +2,9 @@ import express from "express";
 import { chat, chatStream } from "../services/llm.js";
 import { chatLimiter } from "../middleware/rateLimit.js";
 import { extractData, reviewCode } from "../services/promptService.js";
+import crypto from "crypto";
+import { getCache, setCache } from "../services/cacheService.js";
+
 const router = express.Router();
 
 // POST /api/chat — Non-Streaming JSON Response
@@ -15,8 +18,22 @@ router.post("/chat", chatLimiter, async (req, res) => {
       })
     }
 
+    const cacheKey = "chat" + crypto.createHash("md5").update(JSON.stringify(messages)).digest("hex");
+
+    // 1st check Redis cache
+    const cachedResponse = await getCache(cacheKey);
+    if (cachedResponse) {
+      console.log("Cache Hit! Returning from Redis.");
+      return res.json({ ...cachedResponse, cached: true });
+    }
+
+    // if not in cache, then call api
+    console.log("Cache Miss! Calling LLM...");
     const result = await chat({ messages });
-    res.json(result);
+
+    // also response set in Redis cache
+    await setCache(cacheKey, result, 3600);
+    res.json({ ...result, cached: false });
   } catch (err) {
     console.error("Chat error:", err);
 

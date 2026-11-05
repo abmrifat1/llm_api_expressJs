@@ -16,6 +16,7 @@ A production-ready, provider-agnostic REST API built with **Node.js + Express** 
 - ⚙️ **Configurable** via environment variables
 - 🧩 **Clean architecture** — routes / services / middleware separation
 - 🆓 **Works with Groq's free tier** — no credit card required
+- ⚡ **Redis Caching:** Implements Cache-Aside pattern with MD5 hashing to minimize redundant LLM API calls, reducing latency and saving costs.
 
 ---
 
@@ -27,14 +28,17 @@ llm-api-expressjs/
 ├── package.json
 ├── server.js
 ├── routes/
-│   ├── chat.js       # Basic Chat & Prompt Engineering (Extract, Code Review)
-│   ├── rag.js        # Document Upload & RAG Query
-│   └── agent.js      # Autonomous AI Agent (ReAct Loop)
+│   ├── chat.js           # Basic Chat & Prompt Engineering (Extract, Code Review)
+│   ├── rag.js            # Document Upload & RAG Query
+│   └── agent.js          # Autonomous AI Agent (ReAct Loop)
 ├── services/
-│   ├── llm.js        # Multi-provider LLM client & Retry logic
-│   ├── promptService.js # System prompts for JSON extraction & Code Review
-│   ├── ragService.js    # LangChain & Vector Store logic
-│   └── agentService.js  # Tool definitions & Execution logic
+│   ├── llm.js            # Multi-provider LLM client & Retry logic
+│   ├── promptService.js  # System prompts for JSON extraction & Code Review
+│   ├── ragService.js     # LangChain & Vector Store logic
+│   ├── cacheService.js   # Redis cache
+│   └── agentService.js   # Tool definitions & Execution logic
+│
+├── docker-compose.yml
 └── middleware/
     └── rateLimit.js
 ```
@@ -79,15 +83,16 @@ cp .env.example .env
 
 Then open `.env` and fill in:
 
-| Variable         | Description                                      | Example               |
-| ---------------- | ------------------------------------------------ | --------------------- |
-| `PORT`           | Server port                                      | `3000`                |
-| `PROVIDER`       | Active LLM provider (`groq`, `openai`, `gemini`) | `groq`                |
-| `GROQ_API_KEY`   | Your Groq API key                                | `gsk_xxxxxxxx`        |
-| `OPENAI_API_KEY` | Your OpenAI API key (optional)                   | `sk-xxxxxxxx`         |
-| `GEMINI_API_KEY` | Your Gemini API key (optional)                   | `xxxxxxxx`            |
-| `MODEL`          | Model ID to use                                  | `openai/gpt-oss-120b` |
-| `MAX_TOKENS`     | Max tokens per response                          | `1024`                |
+| Variable         | Description                                      | Example                  |
+| ---------------- | ------------------------------------------------ | -------------------------|
+| `PORT`           | Server port                                      | `3000`                   |
+| `PROVIDER`       | Active LLM provider (`groq`, `openai`, `gemini`) | `groq`                   |
+| `GROQ_API_KEY`   | Your Groq API key                                | `gsk_xxxxxxxx`           |
+| `OPENAI_API_KEY` | Your OpenAI API key (optional)                   | `sk-xxxxxxxx`            |
+| `GEMINI_API_KEY` | Your Gemini API key (optional)                   | `xxxxxxxx`               |
+| `MODEL`          | Model ID to use                                  | `openai/gpt-oss-120b`    |
+| `MAX_TOKENS`     | Max tokens per response                          | `1024`                   |
+| `REDIS_URL`      | Redis server                                     | `redis://localhost:6379` |
 
 **Example `.env` for Groq (free tier):**
 
@@ -97,11 +102,18 @@ PROVIDER=groq
 GROQ_API_KEY=gsk_your_key_here
 MODEL=openai/gpt-oss-120b
 MAX_TOKENS=1024
+REDIS_URL=redis://localhost:6379
 ```
 
 > 🔑 Get a **free Groq API key** (no credit card required) at [console.groq.com/keys](https://console.groq.com/keys).
 
-### 5. Run the server
+### 5. Start Redis (Docker)
+Run the following command to start Redis in the background:
+```bash
+docker compose up -d
+```
+
+### 6. Run the server
 
 Development mode (auto-reload):
 
@@ -355,6 +367,7 @@ MODEL=gemini-2.0-flash
 - **MemoryVectorStore** — In-memory Vector Database
 - **mathjs** — Secure mathematical evaluation for Agent Tools
 - **dotenv, cors, express-rate-limit**
+- **Redis & Docker** — In-memory caching & containerization
 
 ---
 

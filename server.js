@@ -4,6 +4,7 @@ import cors from "cors";
 import chatRoutes from "./routes/chat.js";
 import ragRoutes from "./routes/rag.js";
 import agentRoutes from "./routes/agent.js";
+import { connectRedis } from "./services/cacheService.js";
 
 const app = express();
 
@@ -32,6 +33,9 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`LLM API running at http://localhost:${PORT}`);
-});
+
+connectRedis().then(() => {
+  app.listen(PORT, () => {
+    console.log(`LLM API running at http://localhost:${PORT}`);
+  });
+})
