@@ -5,6 +5,7 @@ import chatRoutes from "./routes/chat.js";
 import ragRoutes from "./routes/rag.js";
 import agentRoutes from "./routes/agent.js";
 import { connectRedis } from "./services/cacheService.js";
+import "./workers/ragWorker.js";
 
 const app = express();
 

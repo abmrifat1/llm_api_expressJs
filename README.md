@@ -17,6 +17,7 @@ A production-ready, provider-agnostic REST API built with **Node.js + Express** 
 - 🧩 **Clean architecture** — routes / services / middleware separation
 - 🆓 **Works with Groq's free tier** — no credit card required
 - ⚡ **Redis Caching:** Implements Cache-Aside pattern with MD5 hashing to minimize redundant LLM API calls, reducing latency and saving costs.
+- 📬 **Asynchronous Message Queue:** Integrated BullMQ (Redis-based) to handle long-running RAG document ingestion tasks in the background, preventing API timeouts and improving user experience (202 Accepted pattern).
 
 ---
 
